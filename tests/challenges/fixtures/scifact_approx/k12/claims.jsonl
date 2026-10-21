@@ -1,0 +1,20 @@
+{"id": 54, "claim": "AMP-activated protein kinase (AMPK) activation increases inflammation-related fibrosis in the lungs.", "cited_doc_ids": [49556906], "qrels_doc_ids": [49556906]}
+{"id": 118, "claim": "Antibiotic induced alterations in the gut microbiome reduce resistance against Clostridium difficile", "cited_doc_ids": [6372244], "qrels_doc_ids": [6372244]}
+{"id": 124, "claim": "Antiretroviral therapy reduces rates of tuberculosis across a broad range of CD4 strata.", "cited_doc_ids": [4883040], "qrels_doc_ids": [4883040]}
+{"id": 137, "claim": "Asymptomatic visual impairment screening in elderly populations does not lead to improved vision.", "cited_doc_ids": [26016929], "qrels_doc_ids": [26016929]}
+{"id": 143, "claim": "Autologous transplantation of mesenchymal stem cells causes fewer opportunistic infections than induction therapy with anti-interleukin-2 receptor antibodies.", "cited_doc_ids": [10582939], "qrels_doc_ids": [10582939]}
+{"id": 219, "claim": "CX3CR1 on the Th2 cells suppresses airway inflammation.", "cited_doc_ids": [21366394], "qrels_doc_ids": [21366394]}
+{"id": 338, "claim": "Dexamethasone decreases risk of postoperative bleeding.", "cited_doc_ids": [23349986], "qrels_doc_ids": [23349986]}
+{"id": 380, "claim": "Enhanced early production of inflammatory chemokines improves viral control in the lung.", "cited_doc_ids": [19005293], "qrels_doc_ids": [19005293]}
+{"id": 386, "claim": "Errors in peripheral IV drug administration are most common during bolus administration and multiple-step medicine preparations.", "cited_doc_ids": [16495649], "qrels_doc_ids": [16495649]}
+{"id": 475, "claim": "Glycolysis is one of the primary glycometabolic pathways in cells.", "cited_doc_ids": [18678095], "qrels_doc_ids": [18678095]}
+{"id": 597, "claim": "Incidence rates of cervical cancer have decreased.", "cited_doc_ids": [12779444, 25742130, 36355784], "qrels_doc_ids": [12779444, 25742130, 36355784]}
+{"id": 613, "claim": "Increased microtubule acetylation repairs LRRK2 Roc-COR domain mutation induced locomotor deficits.", "cited_doc_ids": [9638032], "qrels_doc_ids": [9638032]}
+{"id": 839, "claim": "Nanoparticles can be targeted against specific cell types by incorporating aptamers into lipid nanoparticles.", "cited_doc_ids": [1469751], "qrels_doc_ids": [1469751]}
+{"id": 882, "claim": "Omnivores produce less trimethylamine N-oxide from dietary I-carnitine than vegetarians.", "cited_doc_ids": [14803797], "qrels_doc_ids": [14803797]}
+{"id": 936, "claim": "Peroxynitrite is required for nitration of TCR/CD8.", "cited_doc_ids": [5483793], "qrels_doc_ids": [5483793]}
+{"id": 967, "claim": "Pretreatment with the Arp2/3 inhibitor CK-666 affects lamelliopodia formation.", "cited_doc_ids": [2119889, 8997410], "qrels_doc_ids": [8997410]}
+{"id": 993, "claim": "Pyridostatin destabilizes the G - quadruplex in the telomeric region.", "cited_doc_ids": [16472469], "qrels_doc_ids": [16472469]}
+{"id": 1089, "claim": "Smc5/6 engagment drives the activation of SUMO E3 ligase Mms21 by ATP-dependent remolding.", "cited_doc_ids": [17628888], "qrels_doc_ids": [17628888]}
+{"id": 1225, "claim": "The locus rs647161 is associated with colorectal carcinoma.", "cited_doc_ids": [9650982], "qrels_doc_ids": [9650982]}
+{"id": 1266, "claim": "The risk of breast cancer among parous women increases with placental weight of pregnancies, and this association is strongest for premenopausal breast cancer.", "cited_doc_ids": [37480103], "qrels_doc_ids": [37480103]}

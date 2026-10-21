@@ -1,0 +1,60 @@
+{
+  "baseline": {
+    "bm25_mrr_at_10": 0.8746428571428572,
+    "bm25_recall_at_10": 1.0,
+    "oracle_recall_at_10": 1.0,
+    "queries": 20,
+    "random_recall_at_10": 0.08333333333333333
+  },
+  "counts": {
+    "cited_documents": 23,
+    "claims": 20,
+    "claims_with_qrels": 20,
+    "documents": 173,
+    "qrels_documents": 22
+  },
+  "limitations": [
+    "The official 173/20 subset and its frozen 384-dim MiniLM vectors are not public.",
+    "This pool is shared by all queries and is built from cited docs, BM25 hard negatives, and random fill.",
+    "BM25 metrics are a local reference, not the official MiniLM cosine score.",
+    "The pool size, claim sample, and negatives are deterministic but not organizer-identical."
+  ],
+  "output_hashes": {
+    "baseline_metrics.json": "3468e49b70d6f401c0f9cee0503873304c245a03dae3ad8db2b77ed69ab1c48c",
+    "claims.jsonl": "04718e43ae191e111c49a3483161a6bd7ababc4138554cb8093ad072d1c995f7",
+    "corpus.jsonl": "39218c6c17655ddf14e8ccaed8cf5c333d2384a6661e1690d4a1d5ee83a7f59e",
+    "pool.json": "2144f97a6da75622182527d25c933650e77c435761006c2783cef4310dab1bc6",
+    "qrels.json": "085caecf8bff3e47aad437f950c6b89630d1d414295cd126931f1a8f0f4a95e0"
+  },
+  "pool": {
+    "cited": 23,
+    "hard_negatives": 120,
+    "random_fill": 30
+  },
+  "purpose": "Approximate SciFact reranking fixture for challenge retrieval-01-reranking",
+  "schema_version": "1",
+  "selection": {
+    "bm25": {
+      "b": 0.75,
+      "k1": 1.2
+    },
+    "claims": 20,
+    "hard_negatives_per_claim": 6,
+    "metric_corpus": "candidate_pool",
+    "pool_size": 173,
+    "seed": 20261020,
+    "tokenizer": "[a-z0-9]+"
+  },
+  "source": {
+    "archive_sha256": "11c621288d41ac144d29b13b0f8503b3820b7d6e8b1f6ff24dff335c196d76be",
+    "archive_url": "https://scifact.s3-us-west-2.amazonaws.com/release/latest/data.tar.gz",
+    "commit": "68b98a56d93e0f9da0d2aab4e6c3294699a0f72e",
+    "files": {
+      "claims_dev.jsonl": "86f0435d08fdb65d1aa41d1472684f57e6e71930626497bdf4d7a9ec1a632217",
+      "claims_test.jsonl": "558930d75215c73f84a28fe538307d6d397c9de1ec7239514cf45f80d75d2ca3",
+      "claims_train.jsonl": "f4c8fa82d8bd0653a9cc8d61a6ea48c25eacea64e90af5dbf390ebb1b74372f0",
+      "corpus.jsonl": "b8d6c89624cb2ed74dee8938effc4f5d8bd2086887880af8110d64be4ceade62"
+    },
+    "split": "dev"
+  }
+}
