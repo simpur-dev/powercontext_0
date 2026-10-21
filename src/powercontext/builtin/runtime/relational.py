@@ -952,6 +952,20 @@ class RelationalContexts:
                 )
         return pending is not None
 
+    async def request_memory_flush(self, scope_id: str, /) -> bool:
+        """Persist one count-triggered Memory flush generation, or report idle."""
+
+        scope = validate_scope_id(scope_id)
+        async with self.database.transaction() as connection:
+            pending = await self.repositories.processing_pending.request_flush(
+                connection,
+                scope,
+                SOURCE_WINDOW_TRIGGER_NAME,
+            )
+            if pending is not None:
+                await ArtifactProcessingIntentRepository().request(connection, scope, SOURCE_WINDOW_TRIGGER_NAME)
+        return pending is not None
+
     async def browse_topic_memories(
         self,
         scope_id: str,

@@ -489,10 +489,12 @@ class ScopedSourceApplication:
                             span.set_attributes({_MEMORY_CAPTURE_SOURCE_COUNT: 1})
             except BaseValueConflictError as error:
                 raise SourceConflictError("identity", error.identity) from None
-            return SourceReceipt(
+            receipt = SourceReceipt(
                 source_ref=SourceRef(source_type=record.source_type, source_id=record.source_id),
                 sequence=record.position,
             )
+            self._runtime._maybe_trigger_count_processing(self.scope_id)
+            return receipt
         async with self._runtime._context(self.scope_id) as context:
             with self._runtime._stage(_MEMORY_CAPTURE_STAGE, attributes={}) as span:
                 source, sequence = await context.sources.capture(
@@ -505,7 +507,9 @@ class ScopedSourceApplication:
                 )
                 if span is not None:
                     span.set_attributes({_MEMORY_CAPTURE_SOURCE_COUNT: 1})
-            return SourceReceipt(source_ref=context.sources.catalog.as_ref(source), sequence=sequence)
+            receipt = SourceReceipt(source_ref=context.sources.catalog.as_ref(source), sequence=sequence)
+            self._runtime._maybe_trigger_count_processing(self.scope_id)
+            return receipt
 
 
 class SourceApplication:
@@ -2985,6 +2989,45 @@ def _log_scheduled_processing(
     )
 
 
+async def _dispatch_count_triggered_processing(
+    runtime: BuiltinRuntime,
+    scope_id: str,
+    memory_threshold: int | None,
+    topic_threshold: int | None,
+) -> None:
+    """Run one count-triggered processing dispatch outside every lock.
+
+    The count is the durable journal head minus the family cursor; it reads
+    committed state, so restarts, repeated captures, and failed invocations
+    need no extra bookkeeping. Supervisor deployments request a durable flush
+    generation (admitted immediately by the requested-intent discovery
+    channel); in-process runtimes flush on a background task. Both paths rely
+    on existing cursor CAS semantics, so a racing explicit flush cannot
+    double-process.
+    """
+
+    scope = validate_scope_id(scope_id)
+    async with runtime._context(scope) as context:
+        head = max((entry.position for entry in await context.sources.journal.entries()), default=0)
+        if memory_threshold is not None:
+            cursor = await context.triggers.cursor()
+            if head - cursor.sequence >= memory_threshold:
+                if runtime.artifact_processing_supervisor is not None and runtime._topic_memory_flush is not None:
+                    from powercontext.triggers import SOURCE_WINDOW_TRIGGER_NAME
+
+                    accepted = await runtime._topic_memory_flush.request_memory_flush(scope)
+                    if accepted:
+                        runtime.artifact_processing_supervisor.wake(SOURCE_WINDOW_TRIGGER_NAME)
+                else:
+                    await runtime.memory.for_scope(scope).flush()
+        if topic_threshold is not None and runtime._topic_memory_processing_available:
+            pending = await runtime._topic_memory_flush.request_topic_memory_flush(scope)
+            if pending and runtime.artifact_processing_supervisor is None:
+                # No supervisor to drain the accepted wave: flush inline.
+                async with runtime._scoped_operation(scope), runtime._locked(scope):
+                    await runtime._topic_memory_flush(scope)
+
+
 class BuiltinRuntime:
     """Add business-specific operations over composed built-in contexts."""
 
@@ -2995,6 +3038,8 @@ class BuiltinRuntime:
         capabilities: RuntimeCapabilities,
         code_service: CodeService | None = None,
         source_window_limit: int = 100,
+        memory_source_count_threshold: int | None = None,
+        topic_memory_source_count_threshold: int | None = None,
         context_assembly_max_entries: int = 8,
         recall_sufficiency_policy: RecallSufficiencyPolicy | None = None,
         scope_cache_size: int = DEFAULT_SCOPE_CACHE_SIZE,
@@ -3099,6 +3144,8 @@ class BuiltinRuntime:
         self._scheduled_source_runner = scheduled_source_runner
         self._scheduled_experience_runner = scheduled_experience_runner
         self.source_window_limit = source_window_limit
+        self.memory_source_count_threshold = memory_source_count_threshold
+        self.topic_memory_source_count_threshold = topic_memory_source_count_threshold
         self.context_assembly_max_entries = context_assembly_max_entries
         self.recall_sufficiency_policy = recall_sufficiency_policy
         self._scope_cache = ScopeCache(
@@ -3107,6 +3154,7 @@ class BuiltinRuntime:
             observer=scope_cache_observer,
         )
         self._processor_lock = asyncio.Lock()
+        self._count_trigger_tasks: set[asyncio.Task[None]] = set()
         self._close_lock = asyncio.Lock()
         self._lifecycle = asyncio.Condition()
         self._active_operations = 0
@@ -3397,6 +3445,35 @@ class BuiltinRuntime:
 
     def _lock(self, scope_id: str) -> asyncio.Lock:
         return self._scope_cache.lock(validate_scope_id(scope_id))
+
+    def _maybe_trigger_count_processing(self, scope_id: str, /) -> None:
+        """Start Memory/Topic Memory processing when the count threshold is met.
+
+        Called after one capture commits, outside every lock. Never raises:
+        capture results must not depend on trigger dispatch. The count check
+        reads the durable journal head and family cursor (head - cursor >=
+        threshold), so restarts, repeated captures, and failed invocations
+        need no extra bookkeeping here.
+        """
+
+        memory_threshold = self.memory_source_count_threshold
+        topic_threshold = self.topic_memory_source_count_threshold
+        if memory_threshold is None and topic_threshold is None:
+            return
+        try:
+            task = asyncio.create_task(
+                _dispatch_count_triggered_processing(self, scope_id, memory_threshold, topic_threshold)
+            )
+            self._count_trigger_tasks.add(task)
+            task.add_done_callback(self._count_trigger_tasks.discard)
+        except Exception as error:  # pragma: no cover - dispatch must never break capture
+            log_safely(
+                logger,
+                logging.WARNING,
+                "Source count trigger dispatch failed",
+                exc_info=error,
+                extra={"event": "processing.count_trigger.dispatch_failed", "outcome": "failure"},
+            )
 
     @asynccontextmanager
     async def _locked(self, scope_id: str) -> AsyncIterator[None]:
